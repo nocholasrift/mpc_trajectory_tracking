@@ -20,33 +20,33 @@ JackalMPCROS::JackalMPCROS(ros::NodeHandle &nh){
 	double freq;
 
 	// MPC params
-	nh.param("jackal_mpc_vel/controller_frequency", freq, 10.0);
-	nh.param("jackal_mpc_vel/mpc_steps", _mpc_steps, 10.0);
+	nh.param("jackal_mpc_track/controller_frequency", freq, 10.0);
+	nh.param("jackal_mpc_track/mpc_steps", _mpc_steps, 10.0);
 
 	// Cost function params
-	nh.param("jackal_mpc_vel/w_vel",_w_vel,1.0);
-	nh.param("jackal_mpc_vel/w_angvel",_w_angvel,1.0);
-	nh.param("jackal_mpc_vel/w_linvel",_w_linvel,1.0);
-	nh.param("jackal_mpc_vel/w_angvel_d",_w_angvel_d,1.0);
-	nh.param("jackal_mpc_vel/w_linvel_d",_w_linvel_d,.5);
-	nh.param("jackal_mpc_vel/w_etheta", _w_etheta, 1.0);
-	nh.param("jackal_mpc_vel/w_cte", _w_cte, 1.0);
+	nh.param("jackal_mpc_track/w_vel",_w_vel,1.0);
+	nh.param("jackal_mpc_track/w_angvel",_w_angvel,1.0);
+	nh.param("jackal_mpc_track/w_linvel",_w_linvel,1.0);
+	nh.param("jackal_mpc_track/w_angvel_d",_w_angvel_d,1.0);
+	nh.param("jackal_mpc_track/w_linvel_d",_w_linvel_d,.5);
+	nh.param("jackal_mpc_track/w_etheta", _w_etheta, 1.0);
+	nh.param("jackal_mpc_track/w_cte", _w_cte, 1.0);
 
 	// Constraint params
-	nh.param("jackal_mpc_vel/max_angvel", _max_angvel, 3.0);
-	nh.param("jackal_mpc_vel/max_linvel", _max_linvel, 2.0);
-	nh.param("jackal_mpc_vel/max_lina", _max_lina, 3.0);
-	nh.param("jackal_mpc_vel/max_anga", _max_anga, M_PI/2);
-	nh.param("jackal_mpc_vel/bound_value", _bound_value, 1.0e3);
+	nh.param("jackal_mpc_track/max_angvel", _max_angvel, 3.0);
+	nh.param("jackal_mpc_track/max_linvel", _max_linvel, 2.0);
+	nh.param("jackal_mpc_track/max_lina", _max_lina, 3.0);
+	nh.param("jackal_mpc_track/max_anga", _max_anga, M_PI/2);
+	nh.param("jackal_mpc_track/bound_value", _bound_value, 1.0e3);
 
 	// Goal params
-	nh.param("jackal_mpc_vel/x_goal", _x_goal, 0.0);
-	nh.param("jackal_mpc_vel/y_goal", _y_goal, 0.0);
-	nh.param("jackal_mpc_vel/theta_goal", _theta_goal, 0.0);
-	nh.param("jackal_mpc_vel/goal_tolerance", _tol, 0.3);
+	nh.param("jackal_mpc_track/x_goal", _x_goal, 0.0);
+	nh.param("jackal_mpc_track/y_goal", _y_goal, 0.0);
+	nh.param("jackal_mpc_track/theta_goal", _theta_goal, 0.0);
+	nh.param("jackal_mpc_track/goal_tolerance", _tol, 0.3);
 
 	// Teleop params
-	nh.param("jackal_mpc_vel/teleop", _teleop, false);
+	nh.param("jackal_mpc_track/teleop", _teleop, false);
 
 	_dt=1.0/freq;
 
