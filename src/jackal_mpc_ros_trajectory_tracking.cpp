@@ -5,6 +5,7 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Point32.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <visualization_msgs/Marker.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PolygonStamped.h>
 #include "jackal_mpc_ros_trajectory_tracking.h"
@@ -18,6 +19,9 @@ JackalMPCROS::JackalMPCROS(ros::NodeHandle &nh){
     _traj_reset = false;
 
 	double freq;
+
+	// Localization params
+	nh.param("jackal_mpc_track/use_vicon", _use_vicon, false);
 
 	// MPC params
 	nh.param("jackal_mpc_track/controller_frequency", freq, 10.0);
@@ -67,11 +71,15 @@ JackalMPCROS::JackalMPCROS(ros::NodeHandle &nh){
 
 	_mpc.LoadParams(_mpc_params);
 
-	_goalSub = nh.subscribe("/gapGoal", 1, &JackalMPCROS::goalcb, this);
-	_odomSub = nh.subscribe("/odometry/filtered", 1, &JackalMPCROS::odomcb, this);
+	if (_use_vicon)
+		_odomSub = nh.subscribe("/vicon/jackal4/jackal4", 1, &JackalMPCROS::viconcb, this);
+	else
+		_odomSub = nh.subscribe("/odometry/filtered", 1, &JackalMPCROS::odomcb, this);
+		  
     _trajSub = nh.subscribe("/reference_trajectory", 1, &JackalMPCROS::trajectorycb, this);
 	_timer = nh.createTimer(ros::Duration(_dt), &JackalMPCROS::controlLoop, this);
 
+    _odomPub = nh.advertise<visualization_msgs::Marker>("robot_position", 10);
     _pathPub = nh.advertise<nav_msgs::Path>("/spline_path", 10);
 	_velPub = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 10);
 	_trajPub = nh.advertise<nav_msgs::Path>("/mpc_prediction", 10);
@@ -87,6 +95,51 @@ void JackalMPCROS::goalcb(const std_msgs::Float32MultiArray::ConstPtr& msg){
 	_y_goal = msg->data[1];
 	_theta_goal = msg->data[2];
 	_is_goal = true;
+}
+
+void JackalMPCROS::viconcb(const geometry_msgs::TransformStamped::ConstPtr& msg){
+
+	tf::Quaternion q(
+	    msg->transform.rotation.x,
+	    msg->transform.rotation.y,
+	    msg->transform.rotation.z,
+	    msg->transform.rotation.w
+	);
+
+	tf::Matrix3x3 m(q);
+	double roll, pitch, yaw;
+	m.getRPY(roll, pitch, yaw);
+
+	_odom = Eigen::VectorXd(3);
+
+	_odom(XI) = msg->transform.translation.x;
+	_odom(YI) = msg->transform.translation.y;
+	_odom(THETAI) = yaw;
+
+	_is_init = true;
+
+	visualization_msgs::Marker marker;
+	marker.header.frame_id = "odom";
+	marker.header.stamp = ros::Time();
+	marker.ns = "position";
+	marker.id = 0;
+	marker.type = visualization_msgs::Marker::ARROW;
+	marker.action = visualization_msgs::Marker::ADD;
+	marker.pose.position.x = _odom(XI);
+	marker.pose.position.y = _odom(YI);
+	marker.pose.position.z = 0;
+	marker.pose.orientation.x = msg->transform.rotation.x;
+	marker.pose.orientation.y = msg->transform.rotation.y;
+	marker.pose.orientation.z = msg->transform.rotation.z;
+	marker.pose.orientation.w = msg->transform.rotation.w;
+	marker.scale.x = 0.4;
+	marker.scale.y = 0.2;
+	marker.scale.z = 0.4;
+	marker.color.r = 1.0;
+	marker.color.g = 1.0;
+	marker.color.b = 1.0;
+	marker.color.a = 1.0;
+	_odomPub.publish(marker);
 }
 
 void JackalMPCROS::odomcb(const nav_msgs::Odometry::ConstPtr& msg){
@@ -108,9 +161,6 @@ void JackalMPCROS::odomcb(const nav_msgs::Odometry::ConstPtr& msg){
 	_odom(YI) = msg->pose.pose.position.y; 
 	_odom(THETAI) = yaw;
 
-	_curr_vel = msg->twist.twist.linear.x;
-	_curr_ang_vel = msg->twist.twist.angular.z;
-
 	_is_init = true;
 }
 
@@ -118,8 +168,8 @@ void JackalMPCROS::odomcb(const nav_msgs::Odometry::ConstPtr& msg){
 void JackalMPCROS::trajectorycb(const trajectory_msgs::JointTrajectory::ConstPtr& msg){
     trajectory = *msg;
     _traj_reset = true;
-
-    ROS_INFO("MPC received trajectory!");
+	
+    ROS_INFO("MPC received trajectory! (%.2f, %.2f)", msg->points[0].velocities[0], msg->points[0].velocities[1]);
 }
 
 double JackalMPCROS::limit(double prev_v, double input, double max_rate){
@@ -149,7 +199,6 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
     }
 
     if (trajectory.points.size() != 0){
-
         ros::Time now = ros::Time::now();
         double t = (now-start).toSec();
 
@@ -166,13 +215,13 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
             return;
         }
 
-		Eigen::Vector2d odom_se2(_odom(0), _odom(1));
-		if ((goal-odom_se2).squaredNorm() < .1){
-			velMsg.linear.x = 0;
-			velMsg.angular.z = 0;
-			_velPub.publish(velMsg);
-			return;
-		}
+		// Eigen::Vector2d odom_se2(_odom(0), _odom(1));
+		// if ((goal-odom_se2).squaredNorm() < .1){
+		// 	velMsg.linear.x = 0;
+		// 	velMsg.angular.z = 0;
+		// 	_velPub.publish(velMsg);
+		// 	return;
+		// }
 
         // Send next _mpc_steps reference points to solver
         // For feasible tracking, trajectory MUST be C2-continuous due to

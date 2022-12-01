@@ -6,6 +6,7 @@
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <trajectory_msgs/JointTrajectory.h>
 
 #include "jackal_mpc_trajectory_tracking.h"
@@ -20,9 +21,9 @@ public:
 private:
 
 	ros::NodeHandle _nh;
-	ros::Subscriber _odomSub, _laserSub, _goalSub, _trajSub;
+	ros::Subscriber _odomSub, _laserSub, _trajSub;
 	ros::Publisher _velPub, _trajPub, _polyPub, _polyPub2,
-     _pathPub, _pointPub, _actualPathPub;
+     _pathPub, _pointPub, _actualPathPub, _odomPub;
 	ros::Timer _timer;
 
 	Eigen::VectorXd _odom;
@@ -43,7 +44,7 @@ private:
     const int THETAI = 2;
 
     double _dt, _curr_vel, _curr_ang_vel;
-    bool _is_init, _is_goal, _teleop, _traj_reset;
+    bool _is_init, _is_goal, _teleop, _traj_reset, _use_vicon;
 
 	void publishMPCTrajectory();
     void publishActualPath();
@@ -53,6 +54,7 @@ private:
 
 	void odomcb(const nav_msgs::Odometry::ConstPtr& msg);
 	void goalcb(const std_msgs::Float32MultiArray::ConstPtr& msg);
+	void viconcb(const geometry_msgs::TransformStamped::ConstPtr& msg);
     void trajectorycb(const trajectory_msgs::JointTrajectory::ConstPtr& msg);
 
 	void controlLoop(const ros::TimerEvent&);
