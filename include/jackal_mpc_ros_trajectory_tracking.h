@@ -21,7 +21,7 @@ public:
 private:
 
 	ros::NodeHandle _nh;
-	ros::Subscriber _odomSub, _laserSub, _trajSub;
+	ros::Subscriber _odomSub, _laserSub, _trajSub, _trajNoResetSub;
 	ros::Publisher _velPub, _trajPub, _polyPub, _polyPub2,
      _pathPub, _pointPub, _actualPathPub, _odomPub;
 	ros::Timer _timer;
@@ -56,6 +56,7 @@ private:
 	void goalcb(const std_msgs::Float32MultiArray::ConstPtr& msg);
 	void viconcb(const geometry_msgs::TransformStamped::ConstPtr& msg);
     void trajectorycb(const trajectory_msgs::JointTrajectory::ConstPtr& msg);
+	void trajectoryNoResetcb(const trajectory_msgs::JointTrajectory::ConstPtr& msg);
 
 	void controlLoop(const ros::TimerEvent&);
 	double limit(double prev_v, double input, double max_rate);

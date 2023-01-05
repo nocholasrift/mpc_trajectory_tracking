@@ -77,6 +77,7 @@ JackalMPCROS::JackalMPCROS(ros::NodeHandle &nh){
 		_odomSub = nh.subscribe("/odometry/filtered", 1, &JackalMPCROS::odomcb, this);
 		  
     _trajSub = nh.subscribe("/reference_trajectory", 1, &JackalMPCROS::trajectorycb, this);
+    _trajNoResetSub = nh.subscribe("/reference_trajectory_no_reset", 1, &JackalMPCROS::trajectoryNoResetcb, this);
 	_timer = nh.createTimer(ros::Duration(_dt), &JackalMPCROS::controlLoop, this);
 
     _odomPub = nh.advertise<visualization_msgs::Marker>("robot_position", 10);
@@ -119,7 +120,7 @@ void JackalMPCROS::viconcb(const geometry_msgs::TransformStamped::ConstPtr& msg)
 	_is_init = true;
 
 	visualization_msgs::Marker marker;
-	marker.header.frame_id = "odom";
+	marker.header.frame_id = "map";
 	marker.header.stamp = ros::Time();
 	marker.ns = "position";
 	marker.id = 0;
@@ -161,7 +162,10 @@ void JackalMPCROS::odomcb(const nav_msgs::Odometry::ConstPtr& msg){
 	_odom(YI) = msg->pose.pose.position.y; 
 	_odom(THETAI) = yaw;
 
-	_is_init = true;
+	if(!_is_init){
+		_is_init = true;
+		ROS_INFO("tracker initialized");
+	}
 }
 
 // TODO: Support appending trajectories
@@ -170,6 +174,11 @@ void JackalMPCROS::trajectorycb(const trajectory_msgs::JointTrajectory::ConstPtr
     _traj_reset = true;
 	
     ROS_INFO("MPC received trajectory! (%.2f, %.2f)", msg->points[0].velocities[0], msg->points[0].velocities[1]);
+}
+
+void JackalMPCROS::trajectoryNoResetcb(const trajectory_msgs::JointTrajectory::ConstPtr& msg){
+    trajectory = *msg;
+    ROS_INFO("MPC received trajectory (no time reset)! (%.2f, %.2f)", msg->points[0].velocities[0], msg->points[0].velocities[1]);
 }
 
 double JackalMPCROS::limit(double prev_v, double input, double max_rate){
@@ -278,7 +287,7 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
         // publish reference point
         geometry_msgs::PointStamped pointMsg;
         pointMsg.header.stamp = ros::Time::now();
-        pointMsg.header.frame_id = "odom";
+        pointMsg.header.frame_id = "map";
         pointMsg.point.x = wpts(0,0);
         pointMsg.point.y = wpts(3,0);
         _pointPub.publish(pointMsg);
@@ -301,12 +310,12 @@ void JackalMPCROS::publishReference(){
 
     nav_msgs::Path msg;
     msg.header.stamp = ros::Time::now();
-    msg.header.frame_id = "odom";
+    msg.header.frame_id = "map";
 
     for (trajectory_msgs::JointTrajectoryPoint pt : trajectory.points){
         geometry_msgs::PoseStamped pose;
         pose.header.stamp = ros::Time::now();
-        pose.header.frame_id = "odom";
+        pose.header.frame_id = "map";
 
         pose.pose.position.x = pt.positions[0];
         pose.pose.position.y = pt.positions[1];
@@ -329,7 +338,7 @@ void JackalMPCROS::publishActualPath(){
         
     nav_msgs::Path msg;
     msg.header.stamp = ros::Time::now();
-    msg.header.frame_id = "odom";
+    msg.header.frame_id = "map";
     for(Eigen::Vector3d p : poses){
         geometry_msgs::PoseStamped pose;
         pose.pose.position.x = p[0];
@@ -351,13 +360,13 @@ void JackalMPCROS::publishMPCTrajectory(){
 
 	geometry_msgs::PoseStamped goal;
 	goal.header.stamp = ros::Time::now();
-	goal.header.frame_id = "odom";
+	goal.header.frame_id = "map";
 	goal.pose.position.x = _x_goal;
 	goal.pose.position.y = _y_goal;
 	goal.pose.orientation.w = 1;
 
 	nav_msgs::Path pathMsg;
-	pathMsg.header.frame_id = "odom";
+	pathMsg.header.frame_id = "map";
 	pathMsg.header.stamp = ros::Time::now();
 	for(int i = 0; i < _mpc.mpc_x.size(); i++){
 		geometry_msgs::PoseStamped tmp;
