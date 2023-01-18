@@ -12,7 +12,7 @@ This repository contains an MPC Trajectory Tracker based on the [mpc_ros](https:
 
 1. Install ROS
 
-2. (Install IPOPT)[https://coin-or.github.io/Ipopt/INSTALL.html]. So far only tested on IPOPT version 3.14.4, no guarantees that it works on any other version.
+2. [Install IPOPT](https://coin-or.github.io/Ipopt/INSTALL.html). So far only tested on IPOPT version 3.14.4, no guarantees that it works on any other version.
 
 3. Clone repository into a `catkin_ws` and compile with either `catkin build` or `catkin_make`
     - Note: I was not able to get CMake to find IPOPT libraries automatically, so the following line was added to the `CMakeLists.txt`:
@@ -30,7 +30,7 @@ roslaunch mpc_trajectory_tracking jackal_mpc_track.launch
 
 All the MPC needs is a reference trajectory, then it will publish a Twist message to the `cmd_vel` topic.
 
->   * Note: You can change the default odometry topic via the `odomTopic` argument in the launch file.*
+>   *Note: You can change the default odometry topic via the `odomTopic` argument in the launch file.*
 
 You can send a trajectory to one of two topics:
     
