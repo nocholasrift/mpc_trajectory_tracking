@@ -46,6 +46,8 @@ private:
     double _dt, _curr_vel, _curr_ang_vel;
     bool _is_init, _is_goal, _teleop, _traj_reset, _use_vicon;
 
+	std::string _frame_id;
+
 	void publishMPCTrajectory();
     void publishActualPath();
     void publishReference();

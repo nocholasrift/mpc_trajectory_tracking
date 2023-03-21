@@ -51,6 +51,7 @@ JackalMPCROS::JackalMPCROS(ros::NodeHandle &nh){
 
 	// Teleop params
 	nh.param("jackal_mpc_track/teleop", _teleop, false);
+	nh.param<std::string>("jackal_mpc_track/frame_id", _frame_id, "odom");
 
 	_dt=1.0/freq;
 
@@ -120,7 +121,7 @@ void JackalMPCROS::viconcb(const geometry_msgs::TransformStamped::ConstPtr& msg)
 	_is_init = true;
 
 	visualization_msgs::Marker marker;
-	marker.header.frame_id = "map";
+	marker.header.frame_id = _frame_id;
 	marker.header.stamp = ros::Time();
 	marker.ns = "position";
 	marker.id = 0;
@@ -218,6 +219,7 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
         geometry_msgs::Twist velMsg;
         // If trajectory is done, stop
         if ( t > traj_duration){
+			ROS_INFO("trajectory done!");
             velMsg.linear.x = 0;
             velMsg.angular.z = 0;
             _velPub.publish(velMsg);
@@ -261,10 +263,12 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
         // https://ntnuopen.ntnu.no/ntnu-xmlui/bitstream/handle/11250/280167/FossenPettersenGaleazzi2014.pdf?sequence=3
         
         double ref_head = atan2(wpts(4,0), wpts(1,0));
+
         double cte = -1*(_odom(0)-wpts(0,0))*sin(ref_head) + (_odom(1)-wpts(3,0))*cos(ref_head);
         double etheta = _odom(2) - ref_head;
 
-		// ROS_INFO("odom: (%.2f, %.2f)\tref: (%.2f, %.2f, %.2f)", _odom(0), _odom(1), wpts(0,0), wpts(3,0), ref_head);
+		// ROS_INFO("odom: (%.2f, %.2f,%2f)\tref: (%.2f, %.2f, %.2f)", _odom(0), _odom(1), _odom(2), 
+		// 															wpts(0,0), wpts(3,0), ref_head);
 		// ROS_INFO("cte: %.2f\tetheta: %.2f", cte, etheta);
         // MPC state consists of pose, cross-track error, and error in heading
         Eigen::VectorXd state(5);
@@ -273,6 +277,8 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
         // mpc_results setup to only contain the next time-step's inputs
         mpc_results.clear();
         mpc_results = _mpc.Solve(state, wpts);
+		trajectory_msgs::JointTrajectoryPoint p = evalTraj(t);
+		ROS_INFO("current ref vel [%.2f] is (%.2f, %.2f)", t, p.velocities[0], p.velocities[1]);
         ROS_INFO("{vel_x = %.2f, ang_z = %.2f}", mpc_results[1], mpc_results[0]);
 
         velMsg.angular.z = mpc_results[0];
@@ -287,7 +293,7 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
         // publish reference point
         geometry_msgs::PointStamped pointMsg;
         pointMsg.header.stamp = ros::Time::now();
-        pointMsg.header.frame_id = "map";
+        pointMsg.header.frame_id = _frame_id;
         pointMsg.point.x = wpts(0,0);
         pointMsg.point.y = wpts(3,0);
         _pointPub.publish(pointMsg);
@@ -310,12 +316,12 @@ void JackalMPCROS::publishReference(){
 
     nav_msgs::Path msg;
     msg.header.stamp = ros::Time::now();
-    msg.header.frame_id = "map";
+    msg.header.frame_id = _frame_id;
 
     for (trajectory_msgs::JointTrajectoryPoint pt : trajectory.points){
         geometry_msgs::PoseStamped pose;
         pose.header.stamp = ros::Time::now();
-        pose.header.frame_id = "map";
+        pose.header.frame_id = _frame_id;
 
         pose.pose.position.x = pt.positions[0];
         pose.pose.position.y = pt.positions[1];
@@ -338,7 +344,7 @@ void JackalMPCROS::publishActualPath(){
         
     nav_msgs::Path msg;
     msg.header.stamp = ros::Time::now();
-    msg.header.frame_id = "map";
+    msg.header.frame_id = _frame_id;
     for(Eigen::Vector3d p : poses){
         geometry_msgs::PoseStamped pose;
         pose.pose.position.x = p[0];
@@ -360,13 +366,13 @@ void JackalMPCROS::publishMPCTrajectory(){
 
 	geometry_msgs::PoseStamped goal;
 	goal.header.stamp = ros::Time::now();
-	goal.header.frame_id = "map";
+	goal.header.frame_id = _frame_id;
 	goal.pose.position.x = _x_goal;
 	goal.pose.position.y = _y_goal;
 	goal.pose.orientation.w = 1;
 
 	nav_msgs::Path pathMsg;
-	pathMsg.header.frame_id = "map";
+	pathMsg.header.frame_id = _frame_id;
 	pathMsg.header.stamp = ros::Time::now();
 	for(int i = 0; i < _mpc.mpc_x.size(); i++){
 		geometry_msgs::PoseStamped tmp;
