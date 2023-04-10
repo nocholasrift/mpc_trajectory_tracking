@@ -226,13 +226,6 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
             return;
         }
 
-		// Eigen::Vector2d odom_se2(_odom(0), _odom(1));
-		// if ((goal-odom_se2).squaredNorm() < .1){
-		// 	velMsg.linear.x = 0;
-		// 	velMsg.angular.z = 0;
-		// 	_velPub.publish(velMsg);
-		// 	return;
-		// }
 
         // Send next _mpc_steps reference points to solver
         // For feasible tracking, trajectory MUST be C2-continuous due to
@@ -267,9 +260,6 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
         double cte = -1*(_odom(0)-wpts(0,0))*sin(ref_head) + (_odom(1)-wpts(3,0))*cos(ref_head);
         double etheta = _odom(2) - ref_head;
 
-		// ROS_INFO("odom: (%.2f, %.2f,%2f)\tref: (%.2f, %.2f, %.2f)", _odom(0), _odom(1), _odom(2), 
-		// 															wpts(0,0), wpts(3,0), ref_head);
-		// ROS_INFO("cte: %.2f\tetheta: %.2f", cte, etheta);
         // MPC state consists of pose, cross-track error, and error in heading
         Eigen::VectorXd state(5);
         state << _odom(0), _odom(1), _odom(2), cte, etheta;

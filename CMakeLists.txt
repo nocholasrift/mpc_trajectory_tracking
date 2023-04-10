@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   trajectory_msgs
 )
 
-# For some reason the Ipopt libraries aren't being searched for so I'm just putting this in for now
+# /usr/local/lib isn't in my LD_LIBRARY_PATH by default so I call this here.
 link_directories(/usr/local/lib/)
 
 ## System dependencies are found with CMake's conventions
