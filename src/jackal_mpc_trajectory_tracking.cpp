@@ -62,6 +62,7 @@ namespace {
             _ref_etheta  = params.find("REF_ETHETA") != params.end() ? params.at("REF_ETHETA") : _ref_etheta;
             _ref_vel   = params.find("REF_V") != params.end()    ? params.at("REF_V") : _ref_vel;
             
+            _w_pos = params.find("W_POS") != params.end()   ? params.at("W_POS") : _w_pos;
             _w_cte   = params.find("W_CTE") != params.end()   ? params.at("W_CTE") : _w_cte;
             _w_etheta  = params.find("W_ETHETA") != params.end()  ? params.at("W_ETHETA") : _w_etheta;
             _w_vel   = params.find("W_V") != params.end()     ? params.at("W_V") : _w_vel;
@@ -106,16 +107,16 @@ namespace {
 
             // ROS_INFO("GOAL: (%.2f, %.2f)", _x_goal, _y_goal);
 
-            // for (int i = 0; i < _mpc_steps; i++){
-            // 	fg[0] += _w_pos*CppAD::pow(vars[_x_start+i]-_x_goal,2);
-            // 	fg[0] += _w_pos*CppAD::pow(vars[_y_start+i]-_y_goal,2);
-            // }
             for(int i = 0; i < _mpc_steps; i++){
 
+                AD<double> ref_x = wpts(0,i);
                 AD<double> ref_vel_x = wpts(1,i);
+                AD<double> ref_y = wpts(3,i);
                 AD<double> ref_vel_y = wpts(4,i);
                 AD<double> ref_vel = CppAD::sqrt(CppAD::pow(ref_vel_x,2)+CppAD::pow(ref_vel_y,2));
 
+                fg[0] += _w_pos*CppAD::pow(vars[_x_start+i]-ref_x,2);
+                fg[0] += _w_pos*CppAD::pow(vars[_y_start+i]-ref_y,2);
                 fg[0] += _w_cte * CppAD::pow(vars[_cte_start+i], 2);
                 fg[0] += _w_etheta * CppAD::pow(vars[_etheta_start+i], 2);
                 fg[0] += _w_vel * CppAD::pow(vars[_linvel_start+i]-ref_vel, 2);

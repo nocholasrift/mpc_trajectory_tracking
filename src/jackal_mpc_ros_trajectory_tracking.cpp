@@ -35,6 +35,7 @@ JackalMPCROS::JackalMPCROS(ros::NodeHandle &nh){
 	nh.param("jackal_mpc_track/w_linvel_d",_w_linvel_d,.5);
 	nh.param("jackal_mpc_track/w_etheta", _w_etheta, 1.0);
 	nh.param("jackal_mpc_track/w_cte", _w_cte, 1.0);
+	nh.param("jackal_mpc_track/w_pos", _w_pos, 1.0);
 
 	// Constraint params
 	nh.param("jackal_mpc_track/max_angvel", _max_angvel, 3.0);
@@ -62,6 +63,7 @@ JackalMPCROS::JackalMPCROS(ros::NodeHandle &nh){
 	_mpc_params["W_DA"] = _w_linvel_d;
 	_mpc_params["W_DANGVEL"] = _w_angvel_d;
 	_mpc_params["W_ETHETA"] = _w_etheta;
+	_mpc_params["W_POS"] = _w_pos;
 	_mpc_params["W_CTE"] = _w_cte;
 	_mpc_params["LINVEL"] = _max_linvel;
 	_mpc_params["ANGVEL"] = _max_angvel;

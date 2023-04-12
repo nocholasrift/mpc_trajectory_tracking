@@ -37,7 +37,7 @@ private:
     std::map<std::string, double> _mpc_params;
     double _mpc_steps, _w_vel, _w_angvel, _w_linvel, _w_angvel_d, _w_linvel_d, _w_etheta,
     	_max_angvel, _max_linvel, _bound_value, _x_goal, _y_goal, _theta_goal, _tol,
-    	_max_lina, _max_anga, _w_cte;
+    	_max_lina, _max_anga, _w_cte, _w_pos;
 
     const int XI = 0;
     const int YI = 1;

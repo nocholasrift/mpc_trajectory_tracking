@@ -22,7 +22,7 @@ private:
 	// Parameters for mpc solver
     double _max_angvel, _max_linvel, _bound_value, _x_goal, _y_goal, _theta_goal;
     int _mpc_steps, _x_start, _y_start, _theta_start, _v_start, _cte_start, _etheta_start, 
-    _angvel_start, _linvel_start, _w_start;
+    _angvel_start, _linvel_start, _w_start, _w_pos;
     std::map<std::string, double> _params;
 
     unsigned int dis_cnt;

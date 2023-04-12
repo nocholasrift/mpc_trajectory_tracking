@@ -9,6 +9,7 @@
 
 		<param name="w_linvel" value=".8" />
 		<param name="w_cte" value="5.0" />
+		<param name="w_pos" value="1.0" />
 		<param name="w_etheta" value="4.0" />
 
 		<!-- <param name="w_angvel" value="1.0" /> -->
