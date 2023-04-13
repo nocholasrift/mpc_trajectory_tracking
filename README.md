@@ -15,7 +15,7 @@ This repository contains an MPC Trajectory Tracker based on the [mpc_ros](https:
 2. [Install IPOPT](https://coin-or.github.io/Ipopt/INSTALL.html). So far only tested on IPOPT version 3.14.4, no guarantees that it works on any other version.
 
 3. Clone repository into a `catkin_ws` and compile with either `catkin build` or `catkin_make`
-    - Note: I was not able to get CMake to find IPOPT libraries automatically, so the following line was added to the `CMakeLists.txt`:
+    - Note: The following line was added to the `CMakeLists.txt` in case the user doesn't want to add `/usr/local/lib` to `LD_LIBRARY_PATH`:
     ```
     link_directories(/usr/local/lib)
     ```
