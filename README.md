@@ -8,14 +8,14 @@
 This repository contains an MPC Trajectory Tracker based on the [mpc_ros](https://github.com/Geonhee-LEE/mpc_ros) library developed by Geonhee-LEE et. al. The MPC itself is written over the [IPOPT](https://coin-or.github.io/Ipopt/) nonlinear solver and integrated with ROS (Robot Operating System). The model used for trajectory tracking within the MPC is the unicycle model, but there are plans to expand this out to double / triple integrators as well, and even to aerial vehicles. These features will come out when I either need them for a project or when I get the free time to develop them.
 
 ## Installation
-**NOTE: Only tested in Ubuntu 16.04 but should work on any later Ubuntu versions so long as ROS and IPOPT can be installed on them.**
+**NOTE: Tested in Ubuntu 16.04/18/04/20.04 in ROS Kinetic/Melodic/Noetic.**
 
 1. Install ROS
 
 2. [Install IPOPT](https://coin-or.github.io/Ipopt/INSTALL.html). So far only tested on IPOPT version 3.14.4, no guarantees that it works on any other version.
 
 3. Clone repository into a `catkin_ws` and compile with either `catkin build` or `catkin_make`
-    - Note: I was not able to get CMake to find IPOPT libraries automatically, so the following line was added to the `CMakeLists.txt`:
+    - Note: The following line was added to the `CMakeLists.txt` in case the user doesn't want to add `/usr/local/lib` to `LD_LIBRARY_PATH`:
     ```
     link_directories(/usr/local/lib)
     ```
