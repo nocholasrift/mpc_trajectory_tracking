@@ -233,6 +233,7 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
         // For feasible tracking, trajectory MUST be C2-continuous due to
         // trajectory angular velocity calculations in MPC
         Eigen::MatrixXd wpts(6, (int)_mpc_steps);
+
         for(int i = 0; i < _mpc_steps; i++){
             trajectory_msgs::JointTrajectoryPoint pt;
 
@@ -245,13 +246,14 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
             wpts(0,i) = pt.positions[0];
             wpts(1,i) = i*_dt + t >= traj_duration ? 0: pt.velocities[0];
             wpts(2,i) = pt.accelerations[0];
-
+            
             // posY, velY, accY
             wpts(3,i) = pt.positions[1];
             wpts(4,i) = i*_dt + t >= traj_duration ? 0: pt.velocities[1];
             wpts(5,i) = pt.accelerations[1];
 
         }
+
 
         // compute CTE and ETHETA
         // Found equations for these values at:

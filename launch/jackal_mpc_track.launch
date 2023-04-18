@@ -12,7 +12,7 @@
 		<param name="w_pos" value="1.0" />
 		<param name="w_etheta" value="4.0" />
 
-		<param name="w_angvel" value="1.0" />
+		<!-- <param name="w_angvel" value="1.0" /> -->
 		<param name="w_angvel_d" value="4.0" />
 
 		<param name="max_linvel" value="1.8" />

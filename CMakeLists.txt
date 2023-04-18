@@ -124,6 +124,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -144,7 +145,7 @@ include_directories(
 add_executable(jackal_mpc_tracking src/jackal_mpc_trajectory_tracking.cpp src/jackal_mpc_ros_trajectory_tracking.cpp src/jackal_mpc_trajectory_tracking_node.cpp)
 target_link_libraries(jackal_mpc_tracking
     ${catkin_LIBRARIES}
-    Eigen3::Eigen
+    #Eigen3::Eigen
     ipopt
 )
 
