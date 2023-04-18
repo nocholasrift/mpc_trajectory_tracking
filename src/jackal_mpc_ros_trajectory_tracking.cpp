@@ -278,7 +278,6 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
         _velPub.publish(velMsg);
 
         publishReference();
-        // put this after so MPC prediction is overtop path in RVIZ
         publishMPCTrajectory();
         publishActualPath();
 
@@ -371,6 +370,7 @@ void JackalMPCROS::publishMPCTrajectory(){
 		tmp.header = pathMsg.header;
 		tmp.pose.position.x = _mpc.mpc_x[i];
 		tmp.pose.position.y = _mpc.mpc_y[i];
+		tmp.pose.position.z = .1;
 		tmp.pose.orientation.w = 1;
 		pathMsg.poses.push_back(tmp);
 	}
