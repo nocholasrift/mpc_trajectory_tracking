@@ -1,7 +1,8 @@
 <launch>
 	<arg name="odomTopic" default="/gmapping/odometry" />
 
-	<node name="jackal_mpc_track" pkg="mpc_trajectory_tracking" type="jackal_mpc_tracking" >
+	<node name="jackal_mpc_track" pkg="mpc_trajectory_tracking" type="jackal_mpc_tracking" 
+		output="screen">
 		<param name="mpc_steps" value="30" />
 		<param name="x_goal" value="5"/>
 		<param name="y_goal" value="3"/>
@@ -12,16 +13,16 @@
 		<param name="w_pos" value="1.0" />
 		<param name="w_etheta" value="4.0" />
 
-		<param name="w_angvel" value="1.0" />
-		<param name="w_angvel_d" value="4.0" />
+		<param name="w_angvel" value="0" />
+		<param name="w_angvel_d" value="2.0" />
 
 		<param name="max_linvel" value="1.8" />
 		<param name="max_angvel" value="1.5" />
 		<param name="controller_frequency" value="15" />
 		<param name="use_vicon" value="false" />
-		<param name="frame_id" value="map" />
+		<param name="frame_id" value="odom" />
 
-		<remap from="/odometry/filtered" to="$(arg odomTopic)" />
+		<!-- <remap from="/odometry/filtered" to="$(arg odomTopic)" /> -->
         <!-- <remap from="/cmd_vel" to="/ligma" /> -->
 	</node>
 </launch>

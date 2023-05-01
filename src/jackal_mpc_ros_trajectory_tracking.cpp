@@ -260,7 +260,18 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
         double ref_head = atan2(wpts(4,0), wpts(1,0));
 
         double cte = -1*(_odom(0)-wpts(0,0))*sin(ref_head) + (_odom(1)-wpts(3,0))*cos(ref_head);
-        double etheta = _odom(2) - ref_head;
+        
+		double etheta = _odom(2) - ref_head;
+
+		if (fabs(etheta) > M_PI){
+			int sign = etheta >= 0 ? 1 : -1;
+			if (sign == 1)
+				etheta = 2*M_PI - etheta;
+			else
+				etheta = 2*M_PI + etheta;
+				
+			etheta *= sign;
+		}
 
         // MPC state consists of pose, cross-track error, and error in heading
         Eigen::VectorXd state(5);
@@ -270,7 +281,9 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
         mpc_results.clear();
         mpc_results = _mpc.Solve(state, wpts);
 		trajectory_msgs::JointTrajectoryPoint p = evalTraj(t);
-		ROS_INFO("current ref vel [%.2f] is (%.2f, %.2f)", t, p.velocities[0], p.velocities[1]);
+		ROS_INFO("[%.2f] current ref is (%.2f, %.2f, %.2f)", t, p.positions[0], p.positions[1], ref_head);
+		ROS_INFO("[%.2f] current state is (%.2f, %.2f, %.2f)", t, _odom(0), _odom(1), _odom(2));
+		ROS_INFO("[%.2f] etheta: %.2f", t, etheta);
         ROS_INFO("{vel_x = %.2f, ang_z = %.2f}", mpc_results[1], mpc_results[0]);
 
         velMsg.angular.z = mpc_results[0];
