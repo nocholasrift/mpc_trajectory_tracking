@@ -263,13 +263,14 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
         
 		double etheta = _odom(2) - ref_head;
 
+		// account for periodicity of heading
 		if (fabs(etheta) > M_PI){
 			int sign = etheta >= 0 ? 1 : -1;
 			if (sign == 1)
 				etheta = 2*M_PI - etheta;
 			else
 				etheta = 2*M_PI + etheta;
-				
+
 			etheta *= sign;
 		}
 
