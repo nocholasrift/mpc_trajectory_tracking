@@ -265,13 +265,14 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
 
 		// account for periodicity of heading
 		if (fabs(etheta) > M_PI){
+			ROS_ERROR("THETA JUMPED!");
 			int sign = etheta >= 0 ? 1 : -1;
 			if (sign == 1)
 				etheta = 2*M_PI - etheta;
 			else
 				etheta = 2*M_PI + etheta;
 
-			etheta *= sign;
+			etheta *= -sign;
 		}
 
         // MPC state consists of pose, cross-track error, and error in heading
@@ -284,7 +285,7 @@ void JackalMPCROS::controlLoop(const ros::TimerEvent&){
 		trajectory_msgs::JointTrajectoryPoint p = evalTraj(t);
 		ROS_INFO("[%.2f] current ref is (%.2f, %.2f, %.2f)", t, p.positions[0], p.positions[1], ref_head);
 		ROS_INFO("[%.2f] current state is (%.2f, %.2f, %.2f)", t, _odom(0), _odom(1), _odom(2));
-		ROS_INFO("[%.2f] etheta: %.2f", t, etheta);
+		ROS_INFO("[%.2f] etheta is %.2f", t, etheta);
         ROS_INFO("{vel_x = %.2f, ang_z = %.2f}", mpc_results[1], mpc_results[0]);
 
         velMsg.angular.z = mpc_results[0];
