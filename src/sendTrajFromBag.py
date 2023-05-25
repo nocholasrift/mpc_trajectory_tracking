@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-
+import sys
 import yaml
 import rospy
 import rosbag
@@ -13,7 +13,7 @@ def main():
 
     traj_pub = rospy.Publisher("/reference_trajectory", JointTrajectory, queue_size=1)
 
-    fname = "/home/nick/catkin_ws/src/mppi_waypoints/2023-01-29-18-17-21.bag"
+    fname = "/home/nick/catkin_ws/src/robust_fast_navigation/bags/slightCurveWorld10.bag"
     bag = rosbag.Bag(fname)
 
     traj_msg = None
@@ -28,7 +28,7 @@ def main():
 
         traj_msg.header.stamp = rospy.Time.now()
         traj_pub.publish(traj_msg)
-        exit(0)
+        sys.exit()
 
 
 if __name__ == "__main__":
