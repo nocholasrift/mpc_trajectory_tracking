@@ -2,9 +2,9 @@
 
 #include "mpc_base.h"
 
-class MPC : public MPCBase{
+class POS_MPC : public MPCBase{
 public:
-	MPC();
+	POS_MPC();
 
     std::vector<double> mpc_x;
     std::vector<double> mpc_y;
@@ -16,6 +16,6 @@ public:
     void updateGoal(const Eigen::Vector3d& goalPose) override;
 
 protected:
-	// Parameters for mpc solver
-    int _cte_start, _etheta_start;
+    double _x_goal, _y_goal;
+
 };
