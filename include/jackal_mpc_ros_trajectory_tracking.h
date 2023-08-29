@@ -5,7 +5,9 @@
 #include <ros/ros.h>
 #include <std_srvs/Empty.h>
 #include <nav_msgs/Odometry.h>
+#include <geometry_msgs/Twist.h>
 #include <sensor_msgs/LaserScan.h>
+#include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <trajectory_msgs/JointTrajectory.h>
@@ -30,7 +32,7 @@ private:
 
 	ros::NodeHandle _nh;
 	
-	ros::Subscriber _odomSub, _goalSub, _trajSub, _trajNoResetSub;
+	ros::Subscriber _odomSub, _goalSub, _trajSub, _trajNoResetSub, _polySub;
 
 	ros::Publisher _velPub, _trajPub, _polyPub, _polyPub2,
      _pathPub, _pointPub, _actualPathPub, _odomPub, _refPub,
@@ -38,7 +40,7 @@ private:
 
 	ros::ServiceServer _eStop_srv, _mode_srv;
 
-	ros::Timer _timer;
+	ros::Timer _timer, _velPubTimer;
 
 	Eigen::VectorXd _odom;
 
@@ -62,9 +64,12 @@ private:
     const int YI = 1;
     const int THETAI = 2;
 
-    double _dt, _curr_vel, _curr_ang_vel;
+    double _dt, _curr_vel, _curr_ang_vel, _vel_pub_freq;
     bool _is_init, _is_goal, _teleop, _traj_reset, _use_vicon, _estop,
 		_is_at_goal;
+
+	Eigen::MatrixX4d _poly;
+	geometry_msgs::Twist velMsg;
 
 	std::string _frame_id;
 
@@ -78,6 +83,7 @@ private:
 	void pos_ctrl_loop();
 
 	void odomcb(const nav_msgs::Odometry::ConstPtr& msg);
+	void polycb(const geometry_msgs::PoseArray::ConstPtr& msg);
 	void goalcb(const geometry_msgs::PoseStamped::ConstPtr& msg);
 	void viconcb(const geometry_msgs::TransformStamped::ConstPtr& msg);
     void trajectorycb(const trajectory_msgs::JointTrajectory::ConstPtr& msg);
@@ -87,6 +93,7 @@ private:
 	bool eStopcb(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 	bool mode_switchcb(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 
+	void publishVel(const ros::TimerEvent&);
 	void controlLoop(const ros::TimerEvent&);
 	double limit(double prev_v, double input, double max_rate);
 

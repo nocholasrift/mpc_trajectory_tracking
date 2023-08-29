@@ -15,7 +15,9 @@ public:
     std::vector<double> Solve(const Eigen::VectorXd &state, const Eigen::MatrixXd &wpts) override;
     void updateGoal(const Eigen::Vector3d& goalPose) override;
 
+    void setPoly(const Eigen::MatrixX4d& poly);
+
 protected:
     double _x_goal, _y_goal;
-
+    Eigen::MatrixX4d poly;
 };

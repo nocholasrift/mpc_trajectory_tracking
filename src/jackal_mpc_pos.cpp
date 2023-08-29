@@ -162,6 +162,16 @@ namespace {
                 	fg[2 + _theta_start + i] = theta1 - (theta0 +  w0 * _dt);
                 }
 
+                // poly constraints
+                for(int j = 0; j < poly.rows(); ++j){
+                    std::cerr << poly.row(j).transpose() << j << std::endl;
+                    AD<double> a = poly(j,0);
+                    AD<double> b = poly(j,1);
+                    AD<double> d = poly(j,3);
+
+                    fg[2+_theta_start+_mpc_steps+i] = a*x1 + b*y1 + d;
+                }
+
             }
 
             // for(int i = 0; i < poly.rows(); i++){
@@ -231,6 +241,9 @@ void POS_MPC::LoadParams(const std::map<std::string, double> &params)
     std::cout << "\n!! POS_MPC Obj parameters updated !! " << std::endl; 
 }
 
+void POS_MPC::setPoly(const Eigen::MatrixX4d& poly){
+    this->poly = poly;
+}
 
 std::vector<double> POS_MPC::Solve(const Eigen::VectorXd &state) 
 {
@@ -253,7 +266,7 @@ std::vector<double> POS_MPC::Solve(const Eigen::VectorXd &state, const Eigen::Ma
     size_t n_vars = _mpc_steps * state.size() + (_mpc_steps - 1) * (state.size()-1);
     
     // Set the number of constraints
-    size_t n_constraints = _mpc_steps * state.size();// + poly.rows();
+    size_t n_constraints = _mpc_steps * state.size() + (_mpc_steps-1) * poly.rows();
     // Initial value of the independent variables.
     // SHOULD BE 0 besides initial state.
     Dvector vars(n_vars);
@@ -300,9 +313,16 @@ std::vector<double> POS_MPC::Solve(const Eigen::VectorXd &state, const Eigen::Ma
     Dvector constraints_lowerbound(n_constraints);
     Dvector constraints_upperbound(n_constraints);
 
-    for (int i = 0; i < n_constraints; i++)
+    for (int i = 0; i < _mpc_steps*state.size(); i++)
     {
         constraints_lowerbound[i] = 0;
+        constraints_upperbound[i] = 0;
+    }
+
+    // Set constraints for poly
+    for(int i = _mpc_steps*state.size(); i < n_constraints; i++){
+        std::cout << "constraints " << i << std::endl;
+        constraints_lowerbound[i] = -2e19;
         constraints_upperbound[i] = 0;
     }
 
@@ -320,6 +340,7 @@ std::vector<double> POS_MPC::Solve(const Eigen::VectorXd &state, const Eigen::Ma
     FG_eval fg_eval;
     fg_eval.LoadParams(_params);
     fg_eval.setGoal(wpts);
+    fg_eval.setPoly(poly);
 
     // options for IPOPT solver
     std::string options;
