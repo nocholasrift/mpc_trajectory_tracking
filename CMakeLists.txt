@@ -154,11 +154,4 @@ target_link_libraries(jackal_mpc_tracking
     ipopt
 )
 
-add_executable(cbf_mpc_demo src/cbf_mpc.cpp src/cbf_mpc_demo_ros.cpp src/cbf_demo_node.cpp)
-target_link_libraries(cbf_mpc_demo
-    ${catkin_LIBRARIES}
-    Eigen3::Eigen
-    drake::drake
-    ipopt
-)
 
