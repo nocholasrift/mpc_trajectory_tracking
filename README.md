@@ -20,7 +20,7 @@ This repository contains an MPC Trajectory Tracker based on the [mpc_ros](https:
     ```
     link_directories(/usr/local/lib)
     ```
-    If you're IPOPT install is located elsewhere, I'd recommend changing that directory to wherever your IPOPT libraries are if you are having problems linking.
+    If your IPOPT install is located elsewhere, I'd recommend changing that directory to wherever your IPOPT libraries are if you are having problems linking. Alternatively, you can write a custom `Findipopt.cmake` file
 
 ## Running
 
